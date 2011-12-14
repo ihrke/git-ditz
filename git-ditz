@@ -1,0 +1,98 @@
+#!/bin/sh
+#
+# Git-integration for ditz.
+#
+# The following git-variables can be set:
+#   ditz.branch - name of the branch where the ditz-issues are located
+#   ditz.executable - path to the ditz-executable to use
+#   ditz.post-hook - string that is eval'ed after running ditz with all 
+#                    commands
+#   ditz.post-<command>-hook - string that is evaled after running ditz
+#                              with command <command>
+#   ditz.auto-commit - if set, automatically commit changes
+#                      made to the ditz files by ditz
+#   ditz.auto-commit-message - if set, use this message for auto commits
+#
+usage(){
+	 echo "Usage: $0 <ditz-command>";
+};
+
+DITZ=ditz
+GITDITZ=`git config --get ditz.executable`
+if `test x$GITDITZ != x""`; then
+	 DITZ=$GITDITZ
+fi
+echo ">> Using ditz-executable '$DITZ'"
+
+#DITZISSUES=`cat .ditz-config | grep issue_dir: | sed -e 's/issue_dir://g'`
+#echo ">> Using ditz issue-dir '$DITZISSUES'"
+
+COMMAND=$1
+if `test x$COMMAND = x""`; then
+	 COMMAND="todo"
+fi
+
+BRANCH=`git config --get ditz.branch`
+POSTHOOK=`git config --get ditz.post-hook`
+COMMANDHOOK=`git config --get ditz.post-$COMMAND-hook`
+
+STASHED=0
+if `test x$BRANCH = x""`; then
+	 echo ">> No ditz.branch set, just mapping 'git ditz <whatever>' to 'ditz <whatever>'"
+else
+	 echo ">> ditz.branch='$BRANCH', working there"
+
+	 GITCLEAN=`git status -s --ignore-submodules | grep "M "`;
+	 if `test "x$GITCLEAN" != x""`; then
+		  echo ">> Dirty working dir, stashing"
+		  STASHED=1
+		  git stash
+	 fi
+	 git co $BRANCH
+fi
+
+echo ">> $DITZ $COMMAND"
+TMP=`mktemp`
+
+## this allows to simultaneously display text for input
+## and capture the output in a temporary file
+{
+	 $DITZ $COMMAND
+} | tee $TMP
+
+MODIFIED=`cat $TMP | grep yaml`
+AUTOCOMMIT=`git config --get ditz.auto-commit`
+AUTOCOMMITMSG=`git config --get ditz.auto-commit-message`
+if `test x"$AUTOCOMMITMSG" = x""`; then
+	 AUTOCOMMITMSG="some issues modified"
+fi
+
+if `test x"$AUTOCOMMIT" != x""`; then
+	 if `test x"$MODIFIED" != x""`; then 
+		  echo ">> automatically committing"	 
+		  for f in $MODIFIED; do
+				echo "  >> adding $f"
+				git add $f
+		  done
+		  git commit -a -m "$AUTOCOMMITMSG"
+	 fi
+fi
+
+if `test "x$COMMANDHOOK" != x""`; then
+	 echo ">> post-${COMMAND}-hook: '$COMMANDHOOK'"
+	 sh -c "$COMMANDHOOK"
+fi
+
+if `test "x$POSTHOOK" != x""`; then
+	 echo ">> post-hook: '$POSTHOOK'"
+	 sh -c "$POSTHOOK"
+fi
+
+if `test x$BRANCH != x""`; then
+	 git co -
+	 if `test $STASHED -eq 1`; then
+		  echo ">> Unstashing"
+		  git stash pop --quiet
+	 fi
+fi
+ 

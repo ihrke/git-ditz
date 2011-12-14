@@ -47,4 +47,7 @@ ditz database).
 
     git config ditz.branch gh-pages
 	git config ditz.auto-commit t
-	git config ditz.post-commit-hook "ditz html; git add html/*; git commit -a -m \\\"updated html\\\"; git push"
+	git config ditz.post-commit-hook "ditz html; git add html/*; git commit -a -m \"updated html\"; git push"
+
+Now, after every commit (which happens after every change to ditz'
+database), the html is refreshed and pushed.

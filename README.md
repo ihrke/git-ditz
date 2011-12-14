@@ -3,6 +3,8 @@ git-ditz
 
 Git-integration for ditz.
 
+* requires git >= 1.7.7
+
 Allows to run 
     
 	git ditz <any-ditz-command>

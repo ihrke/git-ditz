@@ -53,7 +53,7 @@ else
 	 if `test "x$GITCLEAN" != x""`; then
 		  echo ">> Dirty working dir, stashing"
 		  STASHED=1
-		  git stash
+		  git stash --include-untracked
 	 fi
 	 git co $BRANCH
 fi

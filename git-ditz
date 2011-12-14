@@ -12,6 +12,8 @@
 #   ditz.auto-commit - if set, automatically commit changes
 #                      made to the ditz files by ditz
 #   ditz.auto-commit-message - if set, use this message for auto commits
+#   ditz.post-commit-hook - string that is eval'ed after automatically 
+#                    committing (needs to be enabled)
 #
 usage(){
 	 echo "Usage: $0 <ditz-command>";
@@ -34,14 +36,19 @@ fi
 
 BRANCH=`git config --get ditz.branch`
 POSTHOOK=`git config --get ditz.post-hook`
+POSTCOMMITHOOK=`git config --get ditz.post-commit-hook`
 COMMANDHOOK=`git config --get ditz.post-$COMMAND-hook`
+AUTOCOMMIT=`git config --get ditz.auto-commit`
+AUTOCOMMITMSG=`git config --get ditz.auto-commit-message`
+if `test x"$AUTOCOMMITMSG" = x""`; then
+	 AUTOCOMMITMSG="some issues modified"
+fi
 
 STASHED=0
 if `test x$BRANCH = x""`; then
 	 echo ">> No ditz.branch set, just mapping 'git ditz <whatever>' to 'ditz <whatever>'"
 else
 	 echo ">> ditz.branch='$BRANCH', working there"
-
 	 GITCLEAN=`git status -s --ignore-submodules | grep "M "`;
 	 if `test "x$GITCLEAN" != x""`; then
 		  echo ">> Dirty working dir, stashing"
@@ -61,11 +68,6 @@ TMP=`mktemp`
 } | tee $TMP
 
 MODIFIED=`cat $TMP | grep yaml`
-AUTOCOMMIT=`git config --get ditz.auto-commit`
-AUTOCOMMITMSG=`git config --get ditz.auto-commit-message`
-if `test x"$AUTOCOMMITMSG" = x""`; then
-	 AUTOCOMMITMSG="some issues modified"
-fi
 
 if `test x"$AUTOCOMMIT" != x""`; then
 	 if `test x"$MODIFIED" != x""`; then 
@@ -75,6 +77,10 @@ if `test x"$AUTOCOMMIT" != x""`; then
 				git add $f
 		  done
 		  git commit -a -m "$AUTOCOMMITMSG"
+		  if `test x"$POSTCOMMITHOOK" != x""`; then
+				echo ">> post-commit-hook: $POSTCOMMITHOOK"
+				sh -c "$POSTCOMMITHOOK"
+		  fi
 	 fi
 fi
 

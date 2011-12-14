@@ -18,7 +18,7 @@ The following git-variables can be set:
 * `ditz.branch` - name of the branch where the ditz-issues are located
 * `ditz.executable` - path to the ditz-executable to use
 * `ditz.post-hook` - string that is eval'ed after running ditz with all commands
-* `ditz.post-<command>-hook` - string that is evaled after running ditz with command <command>
+* `ditz.post-<command>-hook` - string that is evaled after running ditz with command `<command>`
 * `ditz.auto-commit` - if set, automatically commit changes made to the ditz files by ditz
 * `ditz.auto-commit-message` - if set, use this message for auto commits
 * `ditz.post-commit-hook` - string that is eval'ed after automatically committing (needs to be enabled)

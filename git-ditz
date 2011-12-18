@@ -16,7 +16,7 @@
 #                    committing (needs to be enabled)
 #
 usage(){
-	 echo "Usage: $0 <ditz-command>";
+	 echo "Usage: $0 <ditz-command> <ditz-parameters>";
 };
 
 vercomp () {
@@ -76,6 +76,7 @@ COMMAND=$1
 if `test x$COMMAND = x""`; then
 	 COMMAND="todo"
 fi
+shift
 
 BRANCH=`$GIT config --get ditz.branch`
 POSTHOOK=`$GIT config --get ditz.post-hook`
@@ -101,13 +102,13 @@ else
 	 $GIT co $BRANCH
 fi
 
-echo ">> $DITZ $COMMAND"
+echo ">> $DITZ $COMMAND $@"
 TMP=`mktemp`
 
 ## this allows to simultaneously display text for input
 ## and capture the output in a temporary file
 {
-	 $DITZ $COMMAND
+	 $DITZ $COMMAND $@
 } | tee $TMP
 
 MODIFIED=`cat $TMP | grep yaml`

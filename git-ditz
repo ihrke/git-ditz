@@ -99,7 +99,7 @@ else
 		  STASHED=1
 		  $GIT stash --include-untracked
 	 fi
-	 $GIT co $BRANCH
+	 $GIT checkout $BRANCH
 fi
 
 echo ">> $DITZ $COMMAND $@"
@@ -139,7 +139,7 @@ if `test "x$POSTHOOK" != x""`; then
 fi
 
 if `test x$BRANCH != x""`; then
-	 $GIT co -
+	 $GIT checkout -
 	 if `test $STASHED -eq 1`; then
 		  echo ">> Unstashing"
 		  $GIT stash pop --quiet
